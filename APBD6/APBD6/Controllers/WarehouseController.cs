@@ -1,7 +1,9 @@
 using APBD6.Models;
+using APBD6.Models.DTOs;
 using APBD6.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+
+namespace APBD6.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -16,8 +18,21 @@ public class WarehouseController : ControllerBase {
 
     [HttpPost]
     public async Task<IActionResult> AddProduct_Warehouse(AddProductWarehouse productWarehouse) {
-        warehouseService.AddProductWarehouse(productWarehouse);
-        return Created("");
+        try {
+            int result = await warehouseService.AddProductWarehouse(productWarehouse);
+            return CreatedAtAction(nameof(AddProduct_Warehouse), new { idOrder = result }, productWarehouse);
+        }
+        catch (EntityNotFoundException ex) {
+            return NotFound(ex.Message);
+        }
+        catch (OrderNotFoundException ex) {
+            return NotFound(ex.Message);
+        }
+        catch (ConflictException ex) {
+            return Conflict(ex.Message);
+        }
+        catch (Exception ex) {
+            return StatusCode(500, ex.Message);
+        }
     }
-   
 }

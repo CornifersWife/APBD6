@@ -1,4 +1,5 @@
 using APBD6.Models;
+using APBD6.Models.DTOs;
 using APBD6.Repositories;
 
 namespace APBD6.Services;
@@ -27,16 +28,17 @@ public class WarehouseService : IWarehouseService {
 
 
     public async Task<int> AddProductWarehouse(AddProductWarehouse addProductWarehouse) {
-        if (!(
-                await warehouseRepository.Exists(addProductWarehouse.IdWarehouse)
-                && await productRepository.Exists(addProductWarehouse.IdProduct)
-            ))
-            throw new NotImplementedException();
+        if (!(await warehouseRepository.Exists(addProductWarehouse.IdWarehouse) &&
+              await productRepository.Exists(addProductWarehouse.IdProduct)))
+            throw new EntityNotFoundException("Warehouse or Product does not exist.");
+
         var idOrder = await orderRepository.FindOrder(addProductWarehouse);
         if (idOrder == -1)
-            throw new NotImplementedException();
+            throw new OrderNotFoundException("Order not found or conditions not met.");
+
         if (await productWarehouseRepository.ExistsOrder(idOrder))
-            throw new NotImplementedException();
+            throw new ConflictException("Order already processed.");
+
         var price = await productRepository.GetPrice(addProductWarehouse.IdProduct);
         var newProductWarehouse = new ProductWarehouse {
             IdProduct = addProductWarehouse.IdProduct,
@@ -46,18 +48,15 @@ public class WarehouseService : IWarehouseService {
             Price = price,
             CreatedAt = addProductWarehouse.CreatedAt
         };
-        try {
-            var xx = await orderRepository.UpdateDate(idOrder);
-            if (xx == -1)
-                throw new NotImplementedException();
-            var idProductWarehouse = await productWarehouseRepository.Insert(newProductWarehouse);
-            if (idProductWarehouse == -1)
-                throw new NotImplementedException();
-        }
-        catch (Exception e) {
-            //TODO
-            throw new Exception(e.Message);
-        }
-        
+
+        var updateResult = await orderRepository.UpdateDate(idOrder);
+        if (updateResult == -1)
+            throw new Exception("Failed to update order date.");
+
+        var idProductWarehouse = await productWarehouseRepository.Insert(newProductWarehouse);
+        if (idProductWarehouse == -1)
+            throw new Exception("Failed to insert product into warehouse.");
+
+        return idProductWarehouse;
     }
 }

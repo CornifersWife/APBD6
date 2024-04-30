@@ -1,4 +1,5 @@
 using APBD6.Models;
+using APBD6.Models.DTOs;
 using Microsoft.Data.SqlClient;
 
 namespace APBD6.Repositories;
@@ -51,6 +52,7 @@ public class OrderRepository : IOrderRepository {
             if (result is not null) {
                 return (int)result;
             }
+
             return -1;
             //TODO chechk if its how we're supposed to do this
         }

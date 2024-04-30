@@ -5,8 +5,8 @@ namespace APBD6.Repositories;
 public interface IWarehouseRepository {
     Task<bool> Exists(int idWarehouse);
 }
+
 public class WarehouseRepository : IWarehouseRepository {
-   
     private readonly IConfiguration configuration;
 
     public WarehouseRepository(IConfiguration configuration) {

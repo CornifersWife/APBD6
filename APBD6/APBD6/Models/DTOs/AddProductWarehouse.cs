@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace APBD6.Models;
+namespace APBD6.Models.DTOs;
 
 public class AddProductWarehouse {
     [Required] public int IdProduct { get; set; }
