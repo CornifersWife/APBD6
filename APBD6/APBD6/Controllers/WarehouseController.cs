@@ -15,8 +15,9 @@ public class WarehouseController : ControllerBase {
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddProduct_Warehouse(ProductWarehouse productWarehouse) {
-        return Ok();
+    public async Task<IActionResult> AddProduct_Warehouse(AddProductWarehouse productWarehouse) {
+        warehouseService.AddProductWarehouse(productWarehouse);
+        return Created("");
     }
    
 }
