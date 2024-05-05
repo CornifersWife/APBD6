@@ -16,38 +16,42 @@ public class ProductWarehouseRepository : IProductWarehouseRepository {
     }
 
     public async Task<bool> ExistsOrder(int idOrder) {
-        using (var sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"))) {
-            var sqlCommand = sqlConnection.CreateCommand();
-            sqlCommand.CommandText = $"SELECT IdProduct FROM Product_Warehouse " +
-                                     $"Where IdOrder = @1";
-            sqlCommand.Parameters.AddWithValue("@1", idOrder);
-            await sqlConnection.OpenAsync();
-            if (await sqlCommand.ExecuteScalarAsync() is not null) {
-                return true;
-            }
+        await using var sqlConnection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
 
-            return false;
+        await using var sqlCommand = new SqlCommand();
+        sqlCommand.Connection = sqlConnection;
+
+        sqlCommand.CommandText = $"SELECT IdProduct FROM Product_Warehouse " +
+                                 $"Where IdOrder = @1";
+        sqlCommand.Parameters.AddWithValue("@1", idOrder);
+        await sqlConnection.OpenAsync();
+        if (await sqlCommand.ExecuteScalarAsync() is not null) {
+            return true;
         }
+
+        return false;
     }
 
+
     public async Task<int> Insert(ProductWarehouse productWarehouse) {
-        using (var sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"))) {
-            var sqlCommand = sqlConnection.CreateCommand();
+        await using var sqlConnection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
+        await sqlConnection.OpenAsync();
 
-            sqlCommand.Connection = sqlConnection;
-            sqlCommand.CommandText =
-                $"INSERT INTO Product_Warehouse (IdWarehouse, IdProduct, IdOrder, Amount, Price, CreatedAt) " +
-                $"VALUES (@1, @2, @3, @4, @5, @6);";
-            sqlCommand.Parameters.AddWithValue("@1", productWarehouse.IdWarehouse);
-            sqlCommand.Parameters.AddWithValue("@2", productWarehouse.IdProduct);
-            sqlCommand.Parameters.AddWithValue("@3", productWarehouse.IdOrder);
-            sqlCommand.Parameters.AddWithValue("@4", productWarehouse.Amount);
-            sqlCommand.Parameters.AddWithValue("@5", productWarehouse.Amount * productWarehouse.Price);
-            sqlCommand.Parameters.AddWithValue("@6", DateTime.Now);
+        await using var sqlCommand = new SqlCommand();
+        sqlCommand.Connection = sqlConnection;
 
-            var result = await sqlCommand.ExecuteScalarAsync();
-            var idProductWarehouse = Convert.ToInt32(result);
-            return idProductWarehouse;
-        }
+        sqlCommand.CommandText =
+            $"INSERT INTO Product_Warehouse (IdWarehouse, IdProduct, IdOrder, Amount, Price, CreatedAt) " +
+            $"VALUES (@1, @2, @3, @4, @5, @6);";
+        sqlCommand.Parameters.AddWithValue("@1", productWarehouse.IdWarehouse);
+        sqlCommand.Parameters.AddWithValue("@2", productWarehouse.IdProduct);
+        sqlCommand.Parameters.AddWithValue("@3", productWarehouse.IdOrder);
+        sqlCommand.Parameters.AddWithValue("@4", productWarehouse.Amount);
+        sqlCommand.Parameters.AddWithValue("@5", productWarehouse.Amount * productWarehouse.Price);
+        sqlCommand.Parameters.AddWithValue("@6", DateTime.Now);
+
+        var result = await sqlCommand.ExecuteScalarAsync();
+        var idProductWarehouse = Convert.ToInt32(result);
+        return idProductWarehouse;
     }
 }

@@ -17,44 +17,42 @@ public class OrderRepository : IOrderRepository {
     }
 
     public async Task<int> FindOrder(AddProductWarehouse productWarehouse) {
-        using (var sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"))) {
-            var sqlCommand = sqlConnection.CreateCommand();
-            sqlCommand.CommandText = $"SELECT IdOrder FROM Order " +
-                                     $"Where IdProduct = @1 " +
-                                     $"AND Amount = @2 " +
-                                     $"AND FulfilledAt IS NULL " +
-                                     $"AND CreatedAt<@3";
-            sqlCommand.Parameters.AddWithValue("@1", productWarehouse.IdProduct);
-            sqlCommand.Parameters.AddWithValue("@2", productWarehouse.Amount);
-            sqlCommand.Parameters.AddWithValue("@3", productWarehouse.CreatedAt);
+        await using var sqlConnection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
+        await sqlConnection.OpenAsync();
+        await using var sqlCommand = new SqlCommand();
+        sqlCommand.Connection = sqlConnection;
 
-            await sqlConnection.OpenAsync();
-            var result = await sqlCommand.ExecuteScalarAsync();
-            if (result is not null) {
-                return (int)result;
-            }
 
-            return -1;
+        sqlCommand.CommandText = $"SELECT IdOrder FROM [Order] " +
+                                 $"Where IdProduct = @1 " +
+                                 $"AND Amount = @2 " +
+                                 $"AND FulfilledAt IS NULL " +
+                                 $"AND CreatedAt < @3";
+        sqlCommand.Parameters.AddWithValue("@1", productWarehouse.IdProduct);
+        sqlCommand.Parameters.AddWithValue("@2", productWarehouse.Amount);
+        sqlCommand.Parameters.AddWithValue("@3", productWarehouse.CreatedAt);
+
+        var result = await sqlCommand.ExecuteScalarAsync();
+        if (result is not null) {
+            return (int)result;
         }
+
+        return -1;
     }
 
+
     public async Task<int> UpdateDate(int idOrder) {
-        using (var sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"))) {
-            var sqlCommand = sqlConnection.CreateCommand();
-            sqlCommand.CommandText = $"UPDATE Order " +
-                                     $"SET FulfilledAt = @1 " +
-                                     $"WHERE IdOrder = @2";
-            sqlCommand.Parameters.AddWithValue("@1", DateTime.Now);
-            sqlCommand.Parameters.AddWithValue("@2", idOrder);
+        await using var sqlConnection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
+        await sqlConnection.OpenAsync();
+        await using var sqlCommand = new SqlCommand();
+        sqlCommand.Connection = sqlConnection;
+        sqlCommand.CommandText = $"UPDATE [Order] " +
+                                 $"SET FulfilledAt = @1 " +
+                                 $"WHERE IdOrder = @2";
+        sqlCommand.Parameters.AddWithValue("@1", DateTime.Now);
+        sqlCommand.Parameters.AddWithValue("@2", idOrder);
 
-            await sqlConnection.OpenAsync();
-            var result = await sqlCommand.ExecuteScalarAsync();
-            if (result is not null) {
-                return (int)result;
-            }
-
-            return -1;
-            //TODO chechk if its how we're supposed to do this
-        }
+        int rowsAffected = await sqlCommand.ExecuteNonQueryAsync();
+        return rowsAffected;
     }
 }

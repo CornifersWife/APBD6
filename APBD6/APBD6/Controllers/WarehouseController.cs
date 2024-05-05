@@ -31,8 +31,5 @@ public class WarehouseController : ControllerBase {
         catch (ConflictException ex) {
             return Conflict(ex.Message);
         }
-        catch (Exception ex) {
-            return StatusCode(500, ex.Message);
-        }
     }
 }

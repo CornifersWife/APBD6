@@ -14,12 +14,15 @@ public class WarehouseRepository : IWarehouseRepository {
     }
 
     public async Task<bool> Exists(int idWarehouse) {
-        using (var sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"))) {
-            var sqlCommand = sqlConnection.CreateCommand();
-            sqlCommand.CommandText = $"SELECT IdProduct FROM Warehouse Where IdWarehouse = @1";
-            sqlCommand.Parameters.AddWithValue("@1", idWarehouse);
-            await sqlConnection.OpenAsync();
-            return await sqlCommand.ExecuteScalarAsync() is not null;
-        }
+        await using var sqlConnection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
+        await sqlConnection.OpenAsync();
+        await using var sqlCommand = new SqlCommand();
+        sqlCommand.Connection = sqlConnection;
+
+        sqlCommand.CommandText = $"SELECT * FROM Warehouse Where IdWarehouse = @1";
+        sqlCommand.Parameters.AddWithValue("@1", idWarehouse);
+        var tmp = await sqlCommand.ExecuteScalarAsync();
+        
+        return tmp is not null;
     }
 }

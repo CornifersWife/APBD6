@@ -10,15 +10,15 @@ public interface IWarehouseService {
 
 public class WarehouseService : IWarehouseService {
     private readonly IConfiguration configuration;
-    private readonly OrderRepository orderRepository;
-    private readonly ProductRepository productRepository;
-    private readonly ProductWarehouseRepository productWarehouseRepository;
-    private readonly WarehouseRepository warehouseRepository;
+    private readonly IOrderRepository orderRepository;
+    private readonly IProductRepository productRepository;
+    private readonly IProductWarehouseRepository productWarehouseRepository;
+    private readonly IWarehouseRepository warehouseRepository;
 
 
-    public WarehouseService(IConfiguration configuration, OrderRepository orderRepository,
-        ProductRepository productRepository, ProductWarehouseRepository productWarehouseRepository,
-        WarehouseRepository warehouseRepository) {
+    public WarehouseService(IConfiguration configuration, IOrderRepository orderRepository,
+        IProductRepository productRepository, IProductWarehouseRepository productWarehouseRepository,
+        IWarehouseRepository warehouseRepository) {
         this.configuration = configuration;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
